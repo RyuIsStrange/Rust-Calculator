@@ -1,4 +1,4 @@
-use core::time;
+use std::time;
 use std::{io, num::ParseIntError, process, thread::sleep};
 
 #[derive(Debug)]
