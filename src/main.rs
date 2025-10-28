@@ -13,7 +13,7 @@ fn preparse(v1: &str, v2: &str) -> bool {
     contains_number(v1) && contains_number(v2)
 }
 
-fn intmaxxing(v1: &str, v2: &str) -> (Result<i64, ParseIntError>, Result<i64, ParseIntError>) {
+fn intparse(v1: &str, v2: &str) -> (Result<i64, ParseIntError>, Result<i64, ParseIntError>) {
     if preparse(&v1, &v2) {
         (v1.trim().parse::<i64>(), v2.trim().parse::<i64>())
     } else {
@@ -23,18 +23,41 @@ fn intmaxxing(v1: &str, v2: &str) -> (Result<i64, ParseIntError>, Result<i64, Pa
     }
 }
 
-fn calc(v1: i64, op: &str, v2: i64) -> Result<i64, Error> {
+/// Returns the calculated value of two numbers
+/// 
+/// # Parameters
+/// - v1 [`i64`]: First number in the operation
+/// - op [`&str`]: The operator
+/// - v2 [`i64`]: Second number in the operation
+/// 
+/// # Result
+/// - [`Result<(i64, i64), Error>`]
+///     - [`(i64, i64)`]
+///         - res.0: The primary calculated output
+///         - res.1: The remainder of any output.
+///             - Default: 0 no remainder.
+///             - Anything other than 0 is a valid remainder.
+///     - [`Error`]
+///         - The primary error(s) that will be returned are either [`Error::DivideByZero`] or [`Error::InvalidOperation`]
+///         - There may be other errors but no clue if there are actually any others.
+fn calc(v1: i64, op: &str, v2: i64) -> Result<(i64, i64), Error> {
     Ok(match op {
-        "+" => v1 + v2,
-        "-" => v1 - v2,
-        "*" => v1 * v2,
+        "+" => (v1 + v2, 0),
+        "-" => (v1 - v2, 0),
+        "*" => (v1 * v2, 0),
         "/" => {
             if v2 == 0 {
                 return Err(Error::DivideByZero)
             } else {
-                v1 / v2
+                if (v1 % v2) == 0 {
+                    (v1 / v2, 0)
+                } else {
+                    (v1 / v2, v1 % v2)
+                }
             }
-        }
+        },
+        "^" => {(v1.pow((v2).try_into().unwrap()), 0)},
+        "sqrt" => {(v1.isqrt(),0)},
         _ => return Err(Error::InvalidOperation)
     })
 }
@@ -69,13 +92,17 @@ fn main() {
         let opr = parts[1];
         let val2 = parts[2];
 
-        let ints = intmaxxing(val1, val2);
+        let ints = intparse(val1, val2);
         
         if let (Ok(int1), Ok(int2)) = ints {
             match calc(int1, opr.trim(), int2) {
                 Ok(res) => {
-                    println!("Result: {}\n", res);
-                    sleep(time::Duration::from_secs(1));
+                    if res.1 != 0 {
+                        println!("Result: {} R{}", res.0, res.1);
+                    } else {
+                        println!("Result: {}\n", res.0);
+                        sleep(time::Duration::from_secs(1));
+                    }
                 }
                 Err(e) => {
                     eprintln!("Error in calculation {:?}\n", e);
