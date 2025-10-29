@@ -1,18 +1,43 @@
 use std::time;
 use std::{io, num::ParseIntError, process, thread::sleep};
 
+/// Error types.
+/// 
+/// - [Error]
+///     - [`Error::InvalidOperation`]: The operation in the equation is either not implemented or doesn't exist.
+///     - [`Error::DivideByZero`]: You can't divide by zero.
 #[derive(Debug)]
 enum Error {
     InvalidOperation,
     DivideByZero
 }
 
+/// Check if the inputed values are actually numbers.
+/// 
+/// # Parameters
+/// - v1 [`&str`]: First input.
+/// - v2 [`&str`]: Second input.
+/// 
+/// # Result
+/// - [`bool`]
+///     - [`True`]: Both are numbers.
+///     - [`False`]: Either one or both values are NOT numbers.
 fn preparse(v1: &str, v2: &str) -> bool {
     let contains_number = |s: &str| s.chars().any(|c| c.is_numeric());
 
     contains_number(v1) && contains_number(v2)
 }
 
+/// Parses the inputs and turns them into usable numbers.
+/// 
+/// # Parameters
+/// - v1 [`&str`]: First input.
+/// - v2 [`&str`]: Second input.
+/// 
+/// # Result
+/// - ([`Result`]<[`i64`], [`ParseIntError`]>, [`Result`]<[`i64`], [`ParseIntError`]>)
+///     - [`i64`]: The input after being parsed.
+///     - [`ParseIntError`]: If this is returned there was an error in the preparse step.
 fn intparse(v1: &str, v2: &str) -> (Result<i64, ParseIntError>, Result<i64, ParseIntError>) {
     if preparse(&v1, &v2) {
         (v1.trim().parse::<i64>(), v2.trim().parse::<i64>())
@@ -83,14 +108,19 @@ fn main() {
             }
         }
 
-        if parts.len() != 3 {
+        if parts.len() != 3 && parts[1] != "sqrt" {
             eprintln!("Invalid input format. Use: <number> <operator> <number>");
             process::exit(1); // Punish the user
         }
 
         let val1 = parts[0];
         let opr = parts[1];
-        let val2 = parts[2];
+
+        // Sets default value to 0 so it passes parsing
+        let mut val2= "0";
+        // Checks if there is actually a 3rd value
+        // Usually not if operator is sqrt
+        if parts.len() > 2 { val2 = parts[2]; }
 
         let ints = intparse(val1, val2);
         
@@ -118,11 +148,6 @@ fn main() {
                 eprintln!("Error parsing second value: {}\n", e2);
                 sleep(time::Duration::from_secs(1));
             }
-            /*
-            Ok maybe dont punish them for now
-
-            process::exit(1); // Punish the user
-            */
         }
     }
 }
