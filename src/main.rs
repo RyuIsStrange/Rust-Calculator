@@ -35,7 +35,7 @@ fn preparse(v1: &str, v2: &str) -> bool {
 /// - v2 [`&str`]: Second input.
 /// 
 /// # Result
-/// - ([`Result`]<[`i64`], [`ParseIntError`]>, [`Result`]<[`i64`], [`ParseIntError`]>)
+/// - ([`Result<i64, ParseIntError>`], [`Result<i64, ParseIntError>`])
 ///     - [`i64`]: The input after being parsed.
 ///     - [`ParseIntError`]: If this is returned there was an error in the preparse step.
 fn intparse(v1: &str, v2: &str) -> (Result<i64, ParseIntError>, Result<i64, ParseIntError>) {
