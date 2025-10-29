@@ -1,5 +1,10 @@
-use std::time;
-use std::{io, num::ParseIntError, process, thread::sleep};
+use std::{
+    num::ParseFloatError,
+    thread::sleep,
+    time, 
+    io,
+    process
+};
 
 /// Error types.
 /// 
@@ -35,14 +40,15 @@ fn preparse(v1: &str, v2: &str) -> bool {
 /// - v2 [`&str`]: Second input.
 /// 
 /// # Result
-/// - ([`Result<i64, ParseIntError>`], [`Result<i64, ParseIntError>`])
-///     - [`i64`]: The input after being parsed.
-///     - [`ParseIntError`]: If this is returned there was an error in the preparse step.
-fn intparse(v1: &str, v2: &str) -> (Result<i64, ParseIntError>, Result<i64, ParseIntError>) {
+/// - ([`Result<f64, ParseFloatError>`], [`Result<f64, ParseFloatError>`])
+///     - [`f64`]: The input after being parsed.
+///     - [`ParseFloatError`]: If this is returned there was an error in the preparse step.
+fn intparse(v1: &str, v2: &str) -> (Result<f64, ParseFloatError>, Result<f64, ParseFloatError>) {
     if preparse(&v1, &v2) {
-        (v1.trim().parse::<i64>(), v2.trim().parse::<i64>())
+
+        (v1.trim().parse::<f64>(), v2.trim().parse::<f64>())
     } else {
-        let err = Err("Pre-parse validation failed".parse::<i64>().unwrap_err());
+        let err = Err("Pre-parse validation failed".parse::<f64>().unwrap_err());
 
         (err.clone(), err)
     }
@@ -51,38 +57,30 @@ fn intparse(v1: &str, v2: &str) -> (Result<i64, ParseIntError>, Result<i64, Pars
 /// Returns the calculated value of two numbers
 /// 
 /// # Parameters
-/// - v1 [`i64`]: First number in the operation
+/// - v1 [`f64`]: First number in the operation
 /// - op [`&str`]: The operator
-/// - v2 [`i64`]: Second number in the operation
+/// - v2 [`f64`]: Second number in the operation
 /// 
 /// # Result
-/// - [`Result<(i64, i64), Error>`]
-///     - [`(i64, i64)`]
-///         - res.0: The primary calculated output
-///         - res.1: The remainder of any output.
-///             - Default: 0 no remainder.
-///             - Anything other than 0 is a valid remainder.
+/// - [`Result<f64, Error>`]
+///     - [`f64`]: The result.
 ///     - [`Error`]
 ///         - The primary error(s) that will be returned are either [`Error::DivideByZero`] or [`Error::InvalidOperation`]
 ///         - There may be other errors but no clue if there are actually any others.
-fn calc(v1: i64, op: &str, v2: i64) -> Result<(i64, i64), Error> {
+fn calc(v1: f64, op: &str, v2: f64) -> Result<f64, Error> {
     Ok(match op {
-        "+" => (v1 + v2, 0),
-        "-" => (v1 - v2, 0),
-        "*" => (v1 * v2, 0),
+        "+" => v1 + v2,
+        "-" => v1 - v2,
+        "*" => v1 * v2,
         "/" => {
-            if v2 == 0 {
+            if v2 == 0.0 {
                 return Err(Error::DivideByZero)
             } else {
-                if (v1 % v2) == 0 {
-                    (v1 / v2, 0)
-                } else {
-                    (v1 / v2, v1 % v2)
-                }
+                v1 / v2
             }
         },
-        "^" => {(v1.pow((v2).try_into().unwrap()), 0)},
-        "sqrt" => {(v1.isqrt(),0)},
+        "^" => {v1.powf((v2).try_into().unwrap())},
+        "sqrt" => {v1.sqrt()},
         _ => return Err(Error::InvalidOperation)
     })
 }
@@ -104,13 +102,13 @@ fn main() {
         if parts.len() == 1 {
             if parts[0] == "exit" {
                 print!("Bye bye\n");
-                process::exit(1); // Grant the user the sweet mercy of death
+                process::exit(0); // Grant the user the sweet mercy of death
             }
         }
 
         if parts.len() != 3 && parts[1] != "sqrt" {
             eprintln!("Invalid input format. Use: <number> <operator> <number>");
-            process::exit(1); // Punish the user
+            // process::exit(1); // Punish the user
         }
 
         let val1 = parts[0];
@@ -127,12 +125,8 @@ fn main() {
         if let (Ok(int1), Ok(int2)) = ints {
             match calc(int1, opr.trim(), int2) {
                 Ok(res) => {
-                    if res.1 != 0 {
-                        println!("Result: {} R{}", res.0, res.1);
-                    } else {
-                        println!("Result: {}\n", res.0);
-                        sleep(time::Duration::from_secs(1));
-                    }
+                    println!("Result: {}\n", res);
+                    sleep(time::Duration::from_secs(1));
                 }
                 Err(e) => {
                     eprintln!("Error in calculation {:?}\n", e);
