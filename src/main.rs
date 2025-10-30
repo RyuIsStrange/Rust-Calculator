@@ -1,13 +1,28 @@
 use std::{
-    thread::sleep,
-    time, 
+    time::{self, Duration},
+    thread::sleep, 
     io,
     process
 };
 
+use eframe::egui;
+
 // Math functions
 mod math;
 
+#[derive(Default)]
+struct Content {
+    display: String,
+    prev_value: f64,
+    cur_value: f64
+}
+
+impl eframe::App for Content {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        
+        ctx.request_repaint_after(Duration::from_secs(1));   
+    }
+}
 
 fn main() {    
     loop {
@@ -25,9 +40,8 @@ fn main() {
 
         if parts.len() == 1 {
             if parts[0] == "exit" {
-                print!("Bye bye\n");
-                // Exits the operation successfully
-                process::exit(0);
+                print!("\nBye bye\n");
+                process::exit(0); // Exits the operation successfully
             }
         }
 
